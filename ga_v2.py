@@ -10,11 +10,13 @@ from deap import base
 from deap import creator
 from deap import tools
 #qiskit
+
 from qiskit_optimization.applications import Knapsack             # clase principal para este tipo de problema
 from qiskit.algorithms import QAOA, NumPyMinimumEigensolver
 from qiskit_optimization.algorithms import MinimumEigenOptimizer
 from qiskit.utils import algorithm_globals, QuantumInstance
 from qiskit import Aer, BasicAer
+
 
 def very_simple_tp(rbs, ):
     '''With rbs and received power, calculate modulation and finally tp.'''
@@ -24,13 +26,17 @@ def very_simple_tp(rbs, ):
 def eval_function(individual):
     '''Fitness function'''
     #individual has the posible rbs combination
-    problem = Knapsack(values = np.array(individual.tolist()), weights = received_power, max_weight = capacity_rbs)
+    #print("fit",len(individual.tolist()), len(received_power))
+
+    problem = Knapsack(values = individual.tolist(), weights = received_power, max_weight = capacity_rbs)
     #print('problem: ',problem)
     qp = problem.to_quadratic_program()
     meo = MinimumEigenOptimizer(min_eigen_solver=NumPyMinimumEigensolver()) #coul it be out somewhere else?
     optimal_function_value = meo.solve(qp)
-    xi=problem.interpret(result)
-    return optimal_function_value,
+    xi=problem.interpret(optimal_function_value)
+    return optimal_function_value.fval,
+
+    #return np.sum(individual),
 
 def ga_register(user_equipments, option_rbs):
     '''Structure of GA'''
@@ -57,7 +63,7 @@ def ga_register(user_equipments, option_rbs):
     stats.register("max", numpy.max)
 
     pop, log = algorithms.eaSimple(pop, toolbox, cxpb=0.5, mutpb=0.2, ngen=10,
-                                  stats=stats, halloffame=hof, verbose=True)
+                                  stats=stats, halloffame=hof, verbose=False)
 
     return pop, log, hof
 
@@ -67,6 +73,7 @@ if __name__=="__main__":
     global received_power
     received_power=np.array([-70, -50, -35, -45, -90, -38, -43, -83, -55, -68]) #in dBs
     received_power=100-received_power
+    received_power=received_power[:3]
     #Each position represent the index of a user terminal, this means we have 10 user terminals
     user_equipments=len(received_power)
     #lets also asume our maximun numbers of chunks of frecuency are 1000
