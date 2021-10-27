@@ -13,16 +13,7 @@ def calculate_peso():
 def eval_throguthput(individual):
     '''evaluate fitness of tp'''
     recursos=np.sum(individual)
-    print("prbs: ",recursos, individual)
-    pj=calculate_peso()
-    #pj=sum(simple_throughput_pj)
-    pj=np.sum(pj)
-    #ESPACIO PARA EL ALGORITMO CUANTICO.
-    if pj>5000:
-        pj=pj*1.1
-    else:
-        pj=pj*0.1
-    return pj,
+    return sum(individual),
 
 
 def genetic_algorithm(user_equipments, wanted_generations, indpb, tournsize, opciones_rbs):
@@ -70,7 +61,8 @@ def main():
     tournsize=5
 
     pop, stats, hof=genetic_algorithm(user_equipments, wanted_generations, indpb, tournsize, opciones_rbs)
-
+    ind = hof[0]
+    print(ind)
     #algoritmo genetico (algoritmo cuantico)
 
 
