@@ -26,7 +26,8 @@ toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.at
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
 def evalOneMax(individual):
-    print(np.sum(individual))
+    print(np.sum(individual), individual, type(individual))
+    #help(individual)
     #En lugar de np.sum(individual), hacemos
     #KP(individual, tp(individual, modulacion), np.sum(max_prbs))
     return np.sum(individual),

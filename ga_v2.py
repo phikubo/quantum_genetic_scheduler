@@ -24,7 +24,7 @@ def very_simple_tp(rbs, ):
 def eval_function(individual):
     '''Fitness function'''
     #individual has the posible rbs combination
-    problem = Knapsack(values = individual, weights = received_power, max_weight = capacity_rbs)
+    problem = Knapsack(values = np.array(individual.tolist()), weights = received_power, max_weight = capacity_rbs)
     #print('problem: ',problem)
     qp = problem.to_quadratic_program()
     meo = MinimumEigenOptimizer(min_eigen_solver=NumPyMinimumEigensolver()) #coul it be out somewhere else?
@@ -34,10 +34,6 @@ def eval_function(individual):
 
 def ga_register(user_equipments, option_rbs):
     '''Structure of GA'''
-    capacity_rbs=1000
-    opciones_rbs=range(capacity_rbs)
-    user_equipments=15
-
     creator.create("FitnessMax", base.Fitness, weights=(1.0,))
     creator.create("Individual", array.array, typecode='i', fitness=creator.FitnessMax)
     toolbox = base.Toolbox()
