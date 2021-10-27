@@ -9,6 +9,7 @@ from deap import base
 from deap import creator
 from deap import tools
 
+
 creator.create("FitnessMax", base.Fitness, weights=(1.0,))
 creator.create("Individual", array.array, typecode='i', fitness=creator.FitnessMax)
 
@@ -54,4 +55,5 @@ def main():
 if __name__ == "__main__":
     pop, log, hof=main()
     ind = hof[0]
+    print("Mejor combinacion: ")
     print(ind)
