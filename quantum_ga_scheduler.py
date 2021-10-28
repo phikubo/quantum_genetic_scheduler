@@ -43,24 +43,38 @@ def eval_function(individual):
     meo = MinimumEigenOptimizer(min_eigen_solver=QAOA(reps=1, quantum_instance=qinstance))
     optimal_function_value = meo.solve(qp)
     #xi=problem.interpret(optimal_function_value)
-    print(individual, optimal_function_value.fval)
-    return optimal_function_value.fval,
+
+    #penalty to resource higher tenance of resource blocks or not using at least 70% of resources.
+    '''This penalty helps this algorithm to find a solution which do not disconect users,
+        if this penalty is deleted, the result has a high probability to disconect users.
+        Disconnect users could produce better conditions overal (because interference phenomena caused by other users)
+        that could potencially lead to better throughput results. This asumption could be
+        further investigated in the scope of this project'''
+    if np.sum(individual)>capacity_rbs or np.sum(individual) < capacity_rbs*0.7:
+        optimal_function_value=optimal_function_value.fval*0.3
+    else:
+        optimal_function_value=optimal_function_value.fval
+    #print(individual, optimal_function_value)
+
+    return optimal_function_value,
 
     #return np.sum(individual),
 
 def ga_register(user_equipments, option_rbs):
     '''Structure of GA'''
     print("go ga!")
+    low=capacity_rbs/7
+    up=capacity_rbs
 
     #GA controls
-    shuffle_mutate_prob=0.05
-    cross_mate=0.8
-    mutate_prob=0.7
+    shuffle_mutate_prob=0.06
+    cross_mate=0.6
+    mutate_prob=0.6
 
     tournsizes=3
-    populations=10
-    generations=10
-    #TOTAL ITERATIONS = tournsizes*populationsge*nerations
+    populations=5
+    generations=6
+    #TOTAL ITERATIONS = populationsge*nerations
 
     creator.create("FitnessMax", base.Fitness, weights=(1.0,))
     creator.create("Individual", array.array, typecode='i', fitness=creator.FitnessMax)
@@ -72,7 +86,7 @@ def ga_register(user_equipments, option_rbs):
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)
     toolbox.register("evaluate", eval_function)
     toolbox.register("mate", tools.cxTwoPoint)
-    toolbox.register("mutate", tools.mutShuffleIndexes, indpb=shuffle_mutate_prob)
+    toolbox.register("mutate", tools.mutUniformInt, low=low, up=up, indpb=shuffle_mutate_prob)
     toolbox.register("select", tools.selTournament, tournsize=tournsizes)
 
     random.seed(64)
@@ -83,7 +97,7 @@ def ga_register(user_equipments, option_rbs):
     stats.register("std", numpy.std)
     stats.register("min", numpy.min)
     stats.register("max", numpy.max)
-
+    print("Executing QGAS (quantum genetic algorithm scheduler...,\nThis may take a while, pls wait!)")
     pop, log = algorithms.eaSimple(pop, toolbox, cxpb=cross_mate, mutpb=mutate_prob, ngen=generations,
                                   stats=stats, halloffame=hof, verbose=False)
 
@@ -99,13 +113,14 @@ if __name__=="__main__":
     received_power=received_power[:4]
     #Each position represent the index of a user terminal, this means we have 10 user terminals
     user_equipments=len(received_power)
-    #lets also asume our maximun numbers of chunks of frecuency are 1000
+    #lets also asume our maximun numbers of chunks of frecuency are 2000
     global capacity_rbs
-    capacity_rbs=2000
+    capacity_rbs=3500
     option_rbs=range(capacity_rbs)
     pop, log, hof = ga_register(user_equipments, option_rbs)
     print("ga finished!")
-    print("Best solution: {}\nTotal: {}, but max capacity is: {} rbs. \nPtx: {}".format(hof[0], np.sum(hof[0]), capacity_rbs, received_power))
+    print("For received power: ",received_power)
+    print("The best solution found: {}\nUsed: {} rbs, but max capacity is: {} rbs.\nWasted: {}%.".format(hof[0], np.sum(hof[0]), capacity_rbs, np.round(100*(np.sum(hof[0])/capacity_rbs))))
     #to get the KP solution multiply hof[0] with xi. How to get xi out the function?
     #for time, we can recalculate it with KP.
     optimal_indexs=very_solution(hof[0])
